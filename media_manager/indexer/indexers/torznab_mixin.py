@@ -32,7 +32,14 @@ class TorznabMixin:
                 if enclosure is None:
                     log.warning("Torznab item missing enclosure, skipping.")
                     continue
-                is_usenet = enclosure.attrib["type"] != "application/x-bittorrent"
+                enclosure_type = enclosure.attrib.get("type")
+                enclosure_url = enclosure.attrib.get("url")
+                if enclosure_type is None or enclosure_url is None:
+                    log.warning(
+                        "Torznab item enclosure missing type/url, skipping."
+                    )
+                    continue
+                is_usenet = enclosure_type != "application/x-bittorrent"
 
                 attributes = list(item.findall("torznab:attr", xmlns))
                 for attribute in attributes:
@@ -76,7 +83,7 @@ class TorznabMixin:
 
                 result = IndexerQueryResult(
                     title=title or "unknown",
-                    download_url=str(enclosure.attrib["url"]),
+                    download_url=enclosure_url,
                     seeders=seeders,
                     flags=flags,
                     size=size,
