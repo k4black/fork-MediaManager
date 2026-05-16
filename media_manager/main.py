@@ -6,7 +6,15 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from asgi_correlation_id import CorrelationIdMiddleware
-from fastapi import APIRouter, FastAPI, Request, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from psycopg.errors import UniqueViolation
@@ -153,12 +161,22 @@ api_app.include_router(
     prefix="/auth/cookie",
     tags=["auth"],
 )
-if config.auth.registration_enabled:
-    api_app.include_router(
-        fastapi_users.get_register_router(UserRead, UserCreate),
-        prefix="/auth",
-        tags=["auth"],
-    )
+
+
+def reject_if_registration_disabled() -> None:
+    if not config.auth.registration_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User registration is disabled.",
+        )
+
+
+api_app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+    dependencies=[Depends(reject_if_registration_disabled)],
+)
 api_app.include_router(
     fastapi_users.get_reset_password_router(), prefix="/auth", tags=["auth"]
 )

@@ -26,7 +26,7 @@ All authentication settings are configured in the `[auth]` section of your `conf
     To use email password resets, you must also configure SMTP settings in the `[notifications.smtp_config]` section.
 
 !!! info
-    When `registration_enabled` is `false`, the sign-up page and `/auth/register` are disabled, and OIDC rejects unknown users (existing users keep working). The bootstrap admin (see `admin_emails`) is unaffected. Changes to this flag require an application restart, since registration routes are mounted at startup.
+    When `registration_enabled` is `false`, the sign-up page is hidden, `/auth/register` returns 403, and OIDC rejects unknown users (existing users keep working). The bootstrap admin (see `admin_emails`) is unaffected.
 
 !!! info
     When setting up MediaManager for the first time, you should add your email to `admin_emails` in the `[auth]` config section. MediaManager will then use this email instead of the default admin email. Your account will automatically be created as an admin account, allowing you to manage other users, media and settings.
