@@ -1,31 +1,23 @@
-name: Backend Test/Lint
+name: Backend Test and Lint
 
 on:
   push:
     branches:
       - master
-    paths:
-      - 'media_manager/**'
-      - 'tests/**'
-      - 'conftest.py'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'ruff.toml'
-      - 'config.example.toml'
-      - '.github/workflows/test-backend.yml'
 
   pull_request:
-    paths:
-      - 'media_manager/**'
-      - 'tests/**'
-      - 'conftest.py'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'ruff.toml'
-      - 'config.example.toml'
-      - '.github/workflows/test-backend.yml'
 
   workflow_dispatch:
+
+  # Allow this workflow to be invoked from build-push-backend.yml so the
+  # build/push job can depend on lint + type-check + tests in one place.
+  workflow_call:
+
+
+concurrency:
+  group: backend-test-lint-${{ github.ref }}
+  cancel-in-progress: true
+
 
 jobs:
   ruff:
@@ -59,7 +51,7 @@ jobs:
       - run: uv run ty check media_manager/ conftest.py tests/
 
   pytest:
-    name: pytest (fast lane)
+    name: pytest (unit & integrations)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
