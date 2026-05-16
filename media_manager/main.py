@@ -153,11 +153,12 @@ api_app.include_router(
     prefix="/auth/cookie",
     tags=["auth"],
 )
-api_app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
+if config.auth.registration_enabled:
+    api_app.include_router(
+        fastapi_users.get_register_router(UserRead, UserCreate),
+        prefix="/auth",
+        tags=["auth"],
+    )
 api_app.include_router(
     fastapi_users.get_reset_password_router(), prefix="/auth", tags=["auth"]
 )

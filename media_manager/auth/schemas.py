@@ -18,3 +18,4 @@ class UserUpdate(schemas.BaseUserUpdate):
 
 class AuthMetadata(BaseModel):
     oauth_providers: list[str]
+    registration_enabled: bool

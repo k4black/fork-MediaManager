@@ -1079,6 +1079,8 @@ export interface components {
 		AuthMetadata: {
 			/** Oauth Providers */
 			oauth_providers: string[];
+			/** Registration Enabled */
+			registration_enabled: boolean;
 		};
 		/** BearerResponse */
 		BearerResponse: {

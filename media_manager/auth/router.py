@@ -59,7 +59,8 @@ def get_openid_router() -> APIRouter:
     )
 
 
-openid_config = MediaManagerConfig().auth.openid_connect
+auth_config = MediaManagerConfig().auth
+openid_config = auth_config.openid_connect
 
 
 @users_router.get(
@@ -75,6 +76,8 @@ def get_all_users(db: DbSessionDependency) -> list[UserRead]:
 
 @auth_metadata_router.get("/auth/metadata", status_code=status.HTTP_200_OK)
 def get_auth_metadata() -> AuthMetadata:
-    if openid_config.enabled:
-        return AuthMetadata(oauth_providers=[openid_config.name])
-    return AuthMetadata(oauth_providers=[])
+    providers = [openid_config.name] if openid_config.enabled else []
+    return AuthMetadata(
+        oauth_providers=providers,
+        registration_enabled=auth_config.registration_enabled,
+    )

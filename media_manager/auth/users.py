@@ -4,9 +4,9 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any, override
 
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
-from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, models
+from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, exceptions, models
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
@@ -58,6 +58,43 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         if "email" in update_dict:
             updated_user = UserUpdate(is_verified=True)
             await self.update(user=user, user_update=updated_user)
+
+    @override
+    async def oauth_callback(
+        self,
+        oauth_name: str,
+        access_token: str,
+        account_id: str,
+        account_email: str,
+        expires_at: int | None = None,
+        refresh_token: str | None = None,
+        request: Request | None = None,
+        *,
+        associate_by_email: bool = False,
+        is_verified_by_default: bool = False,
+    ) -> User:
+        if not config.registration_enabled:
+            try:
+                await self.get_by_oauth_account(oauth_name, account_id)
+            except exceptions.UserNotExists:
+                try:
+                    await self.get_by_email(account_email)
+                except exceptions.UserNotExists:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="User registration is disabled.",
+                    ) from None
+        return await super().oauth_callback(
+            oauth_name,
+            access_token,
+            account_id,
+            account_email,
+            expires_at,
+            refresh_token,
+            request,
+            associate_by_email=associate_by_email,
+            is_verified_by_default=is_verified_by_default,
+        )
 
     @override
     async def on_after_register(

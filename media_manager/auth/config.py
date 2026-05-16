@@ -19,4 +19,5 @@ class AuthConfig(BaseSettings):
     session_lifetime: int = 60 * 60 * 24
     admin_emails: list[str] = []
     email_password_resets: bool = False
+    registration_enabled: bool = False
     openid_connect: OpenIdConfig = OpenIdConfig()

@@ -14,5 +14,8 @@
 </svelte:head>
 
 <main>
-	<LoginCard oauthProviderNames={loginMetaData.oauth_providers} />
+	<LoginCard
+		oauthProviderNames={loginMetaData.oauth_providers}
+		registrationEnabled={loginMetaData.registration_enabled}
+	/>
 </main>
