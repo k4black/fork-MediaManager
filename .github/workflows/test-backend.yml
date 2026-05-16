@@ -1,0 +1,74 @@
+name: Backend Test/Lint
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'media_manager/**'
+      - 'tests/**'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'ruff.toml'
+      - 'config.example.toml'
+      - '.github/workflows/test-backend.yml'
+
+  pull_request:
+    paths:
+      - 'media_manager/**'
+      - 'tests/**'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'ruff.toml'
+      - 'config.example.toml'
+      - '.github/workflows/test-backend.yml'
+
+  workflow_dispatch:
+
+jobs:
+  ruff:
+    name: ruff (lint + format)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+
+  # TODO: enable once the existing ty diagnostics are addressed
+  # (72 pre-existing errors as of 2026-05-16).
+  # ty:
+  #   name: ty (type check)
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 5
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: astral-sh/setup-uv@v4
+  #       with:
+  #         enable-cache: true
+  #         cache-dependency-glob: uv.lock
+  #     - run: uv python install 3.13
+  #     - run: uv sync --group dev
+  #     - run: uv run ty check
+
+  pytest:
+    name: pytest (fast lane)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --group dev
+      - run: uv run pytest
