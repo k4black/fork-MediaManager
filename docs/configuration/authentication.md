@@ -19,9 +19,14 @@ All authentication settings are configured in the `[auth]` section of your `conf
   A list of email addresses for administrator accounts. This is required.
 * `email_password_resets`\
   Enables password resets via email. Default is `false`.
+* `registration_enabled`\
+  Allows new users to sign up for an account. Default is `false`.
 
 !!! info
     To use email password resets, you must also configure SMTP settings in the `[notifications.smtp_config]` section.
+
+!!! info
+    When `registration_enabled` is `false`, the public sign-up page and the `/auth/register` endpoint are disabled, and OpenID Connect logins from unknown users are rejected (OIDC continues to work for users that already exist in MediaManager). New users must be created by an administrator. The bootstrap admin user (see `admin_emails`) is always created regardless of this flag.
 
 !!! info
     When setting up MediaManager for the first time, you should add your email to `admin_emails` in the `[auth]` config section. MediaManager will then use this email instead of the default admin email. Your account will automatically be created as an admin account, allowing you to manage other users, media and settings.
@@ -70,6 +75,7 @@ token_secret = "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
 session_lifetime = 604800  # 1 week
 admin_emails = ["admin@example.com", "manager@example.com"]
 email_password_resets = true
+registration_enabled = false
 
 [auth.openid_connect]
 enabled = true
