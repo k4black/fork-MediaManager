@@ -39,10 +39,11 @@ from media_manager.indexer.config import (  # noqa: E402
     IndexerFlagScoringRule,
     TitleScoringRule,
 )
+from tests.types import PatchScoringRules  # noqa: E402
 
 
 @pytest.fixture
-def patch_scoring_rules(monkeypatch: pytest.MonkeyPatch) -> "PatchScoringRules":
+def patch_scoring_rules(monkeypatch: pytest.MonkeyPatch) -> PatchScoringRules:
     """Inject scoring rules into the config for the indexer utils module.
 
     MediaManagerConfig() returns a freshly-loaded instance per call, so we

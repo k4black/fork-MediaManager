@@ -1,6 +1,6 @@
 import logging
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
 from media_manager.indexer.schemas import IndexerQueryResult
@@ -23,14 +23,16 @@ class TorznabMixin:
                 age = 0
                 indexer_name = "unknown"
 
-                if item.find("jackettindexer") is not None:
-                    indexer_name = item.find("jackettindexer").text
-                if item.find("prowlarrindexer") is not None:
-                    indexer_name = item.find("prowlarrindexer").text
+                if (_indexer := item.find("jackettindexer")) is not None:
+                    indexer_name = _indexer.text
+                if (_indexer := item.find("prowlarrindexer")) is not None:
+                    indexer_name = _indexer.text
 
-                is_usenet = (
-                    item.find("enclosure").attrib["type"] != "application/x-bittorrent"
-                )
+                enclosure = item.find("enclosure")
+                if enclosure is None:
+                    log.warning("Torznab item missing enclosure, skipping.")
+                    continue
+                is_usenet = enclosure.attrib["type"] != "application/x-bittorrent"
 
                 attributes = list(item.findall("torznab:attr", xmlns))
                 for attribute in attributes:
@@ -39,7 +41,7 @@ class TorznabMixin:
                             posted_date = parsedate_to_datetime(
                                 attribute.attrib["value"]
                             )
-                            now = datetime.now(datetime.UTC)
+                            now = datetime.now(UTC)
                             age = int((now - posted_date).total_seconds())
                     else:
                         if attribute.attrib["name"] == "seeders":
@@ -61,7 +63,7 @@ class TorznabMixin:
                             if upload_volume_factor == 2:
                                 flags.append("doubleupload")
 
-                title = item.find("title").text
+                title = t.text if (t := item.find("title")) is not None else None
                 size_str = item.find("size")
                 if size_str is None or size_str.text is None:
                     log.warning(f"Torznab item {title} has no size, skipping.")
@@ -74,7 +76,7 @@ class TorznabMixin:
 
                 result = IndexerQueryResult(
                     title=title or "unknown",
-                    download_url=str(item.find("enclosure").attrib["url"]),
+                    download_url=str(enclosure.attrib["url"]),
                     seeders=seeders,
                     flags=flags,
                     size=size,
