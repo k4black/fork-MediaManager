@@ -34,7 +34,7 @@ on:
 
 jobs:
   # Reuse workflow instead of duplicating ruff/pytest calls here
-  backend-checks:
+  backend-test-lint:
     uses: ./.github/workflows/backend-test-lint.yml
 
   lint-frontend:
@@ -56,7 +56,7 @@ jobs:
         working-directory: ./web
 
   build-and-push:
-    needs: [lint-frontend, backend-checks]
+    needs: [lint-frontend, backend-test-lint]
     strategy:
       fail-fast: false
       matrix:
