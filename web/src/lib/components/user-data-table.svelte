@@ -7,6 +7,7 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { invalidateAll } from '$app/navigation';
 	import client from '$lib/api';
@@ -20,6 +21,31 @@
 	let newEmail: string = $state('');
 	let dialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
+	let createDialogOpen = $state(false);
+	let createEmail: string = $state('');
+	let createPassword: string = $state('');
+	let createIsSuperuser: boolean = $state(false);
+
+	async function createUser() {
+		const { error } = await client.POST('/api/v1/users/', {
+			body: {
+				email: createEmail,
+				password: createPassword || null,
+				is_superuser: createIsSuperuser,
+				is_verified: true
+			}
+		});
+		if (error) {
+			toast.error(`Failed to create user: ${error.detail ?? error}`);
+			return;
+		}
+		toast.success(`User ${createEmail} created successfully.`);
+		createDialogOpen = false;
+		createEmail = '';
+		createPassword = '';
+		createIsSuperuser = false;
+		await invalidateAll();
+	}
 
 	async function saveUser() {
 		if (!selectedUser) return;
@@ -73,6 +99,9 @@
 	}
 </script>
 
+<div class="mb-4 flex justify-end">
+	<Button onclick={() => (createDialogOpen = true)}>Add User</Button>
+</div>
 <Table.Root>
 	<Table.Caption>A list of all users.</Table.Caption>
 	<Table.Header>
@@ -248,3 +277,45 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+<Dialog.Root bind:open={createDialogOpen}>
+	<Dialog.Content class="w-full max-w-[500px] rounded-lg p-6 shadow-lg">
+		<Dialog.Header>
+			<Dialog.Title class="mb-1 text-xl font-semibold">Add user</Dialog.Title>
+			<Dialog.Description class="mb-4 text-sm">
+				Create a new user account. Leave password blank to auto-generate one (useful when the user
+				will sign in via OIDC).
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="space-y-4">
+			<div>
+				<Label class="mb-1 block text-sm font-medium" for="create-email">Email</Label>
+				<Input
+					bind:value={createEmail}
+					class="w-full"
+					id="create-email"
+					placeholder="user@example.com"
+					required
+					type="email"
+				/>
+			</div>
+			<div>
+				<Label class="mb-1 block text-sm font-medium" for="create-password">Password</Label>
+				<Input
+					bind:value={createPassword}
+					class="w-full"
+					id="create-password"
+					placeholder="Leave blank for OIDC users"
+					type="password"
+				/>
+			</div>
+			<div class="flex items-center gap-2">
+				<Checkbox bind:checked={createIsSuperuser} id="create-superuser" />
+				<Label class="text-sm" for="create-superuser">Administrator</Label>
+			</div>
+		</div>
+		<div class="mt-8 flex justify-end gap-2">
+			<Button onclick={() => (createDialogOpen = false)} variant="outline">Cancel</Button>
+			<Button onclick={() => createUser()} disabled={!createEmail}>Create</Button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
