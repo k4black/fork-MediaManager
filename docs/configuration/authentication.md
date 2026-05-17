@@ -28,6 +28,9 @@ All authentication settings are configured in the `[auth]` section of your `conf
 !!! info
     When `registration_enabled` is `false`, the sign-up page is hidden, `/auth/register` returns 403, and OIDC rejects unknown users (existing users keep working). The bootstrap admin (see `admin_emails`) is unaffected.
 
+!!! tip "Adding users when registration is disabled"
+    Administrators can add users at any time from the **Settings → Users** page via the "Add User" button. For OIDC-only users, leave the password field blank — a random password is generated and the user is matched to their OIDC account by email on first sign-in.
+
 !!! info
     When setting up MediaManager for the first time, you should add your email to `admin_emails` in the `[auth]` config section. MediaManager will then use this email instead of the default admin email. Your account will automatically be created as an admin account, allowing you to manage other users, media and settings.
 
