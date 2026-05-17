@@ -25,26 +25,36 @@
 	let createEmail: string = $state('');
 	let createPassword: string = $state('');
 	let createIsSuperuser: boolean = $state(false);
+	let isCreating: boolean = $state(false);
 
-	async function createUser() {
-		const { error } = await client.POST('/api/v1/users/', {
-			body: {
-				email: createEmail,
-				password: createPassword || null,
-				is_superuser: createIsSuperuser,
-				is_verified: true
-			}
-		});
-		if (error) {
-			toast.error(`Failed to create user: ${error.detail ?? error}`);
-			return;
-		}
-		toast.success(`User ${createEmail} created successfully.`);
-		createDialogOpen = false;
+	function resetCreateForm() {
 		createEmail = '';
 		createPassword = '';
 		createIsSuperuser = false;
-		await invalidateAll();
+	}
+
+	async function createUser() {
+		if (isCreating) return;
+		isCreating = true;
+		try {
+			const { error } = await client.POST('/api/v1/users/', {
+				body: {
+					email: createEmail,
+					password: createPassword || null,
+					is_superuser: createIsSuperuser,
+					is_verified: true
+				}
+			});
+			if (error) {
+				toast.error(`Failed to create user: ${error.detail ?? error}`);
+				return;
+			}
+			toast.success(`User ${createEmail} created successfully.`);
+			createDialogOpen = false;
+			await invalidateAll();
+		} finally {
+			isCreating = false;
+		}
 	}
 
 	async function saveUser() {
@@ -277,7 +287,13 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
-<Dialog.Root bind:open={createDialogOpen}>
+<Dialog.Root
+	open={createDialogOpen}
+	onOpenChange={(open) => {
+		createDialogOpen = open;
+		if (!open) resetCreateForm();
+	}}
+>
 	<Dialog.Content class="w-full max-w-[500px] rounded-lg p-6 shadow-lg">
 		<Dialog.Header>
 			<Dialog.Title class="mb-1 text-xl font-semibold">Add user</Dialog.Title>
@@ -315,7 +331,9 @@
 		</div>
 		<div class="mt-8 flex justify-end gap-2">
 			<Button onclick={() => (createDialogOpen = false)} variant="outline">Cancel</Button>
-			<Button onclick={() => createUser()} disabled={!createEmail}>Create</Button>
+			<Button onclick={() => createUser()} disabled={!createEmail || isCreating}>
+				{isCreating ? 'Creating…' : 'Create'}
+			</Button>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
